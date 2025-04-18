@@ -48,3 +48,18 @@ const ScoreScreenStyle = StyleSheet.create({
     borderWidth: 4,
   },
 });
+
+const query_athena = () => {
+  print("Test")
+  fetch('https://878r18dvk4.execute-api.us-east-1.amazonaws.com/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: "SELECT * FROM nhl_skater_data WHERE abr = 'TBL' LIMIT 100"
+    })
+  })
+  .then(res => res.json())
+  .then(data => console.log("Athena results:", data))
+  .catch(err => console.error("Error:", err));    
+}
+
