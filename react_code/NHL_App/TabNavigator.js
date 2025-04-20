@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ScoresScreen from './screens/ScoresScreen';
 import StandingsScreen from './screens/StandingsScreen';
+import StatsScreen from './screens/StatsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -39,7 +40,7 @@ const createTabOptions = (name) => {
 const styles = StyleSheet.create({
   tabButton: (focused) => ({
     flex: 1,
-    width: '159', // Ensure the button fills the width of the tab
+    width: '100', // Ensure the button fills the width of the tab
     height: '100', // Ensure the button fills the height of the tab
     backgroundColor: focused ? 'grey' : 'black',
     alignItems: 'center',
@@ -66,6 +67,11 @@ const TabNavigator = () => (
       name="Standings"
       component={StandingsScreen}
       options={createTabOptions('Standings')}
+    />
+    <Tab.Screen
+      name="Stats"
+      component={StatsScreen}
+      options={createTabOptions('Stats')}
     />
   </Tab.Navigator>
 );
