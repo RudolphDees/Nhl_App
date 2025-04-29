@@ -10,11 +10,12 @@ const StatsScreen = () => {
   const [tableData, setTableData] = useState([]); // State to store table data
   const [filteredTableData, setFilteredTableData] = useState([]); // State to store filtered table data
 
-
   // Function to fetch the team list
   const fetchTeamList = async () => {
     try {
       const response = await fetch('https://api-web.nhle.com/v1/standings/now');
+
+
       const data = await response.json();
 
       const teamList = data.standings.map((team, index) => ({
@@ -28,8 +29,6 @@ const StatsScreen = () => {
       console.error('Error fetching team list:', error);
     }
   };
-
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -72,6 +71,7 @@ const StatsScreen = () => {
   const filterTable = () => {
     console.log("Filtering the table data for team: " + (JSON.stringify(selectedTeam)))
     if (selectedTeam.default == undefined){
+      console.log("Selected team is undefined, setting to All")
       setFilteredTableData(tableData); // If 'All' is selected, show all data
       return;
     }
@@ -79,8 +79,7 @@ const StatsScreen = () => {
       (item.abr === selectedTeam.default) // Ensure team filter is applied
     );
     setFilteredTableData(filtered); // Update the filtered data
-    sortTable('goals'); // Sort the filtered data by goals
-  };
+  }
 
   const renderTableHeader = () => (
     <View style={styles.tableHeader}>

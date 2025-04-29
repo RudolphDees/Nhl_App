@@ -10,7 +10,6 @@ const query_athena = async (query) => {
     });
 
     const data = await response.json();
-
     return data.results; // Return the results properly
   } catch (err) {
     console.error("Error querying Athena:", err);
