@@ -1,38 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, FlatList, StyleSheet, RefreshControl, ScrollView, Linking } from 'react-native';
 import { SvgUri } from 'react-native-svg';
+import nhlTeamColors from '../content/TeamColors';
+
+// Function to open external links safely
+const openLink = (url) => {
+  if (url) {
+    Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
+  }
+};
 
 const baseURL = 'https://api-web.nhle.com/v1/score/';
 
+const TeamInfo = ({ icon, abbrev, score }) => (
+  <View style={styles.teamInfo}>
+    <SvgUri width="90" height="90" uri={icon} />
+    <Text style={styles.scoreText}>{score}</Text>
+  </View>
+);
 const ScoreList = ({ year, month, day }) => {
-  const [scoreData, setScoreData] = useState([]); // Use state for score data
+  const [scoreData, setScoreData] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  async function fetchMyAPI() {
+  const fetchMyAPI = useCallback(async () => {
     try {
       const formattedDate = `${year}-${month}-${day}`;
-      const dailyURL = `${baseURL}${formattedDate}`;
-      console.log(`Fetching data from: ${dailyURL}`);
+      const response = await fetch(`${baseURL}${formattedDate}`);
+      const data = await response.json();
 
-      const response = await fetch(dailyURL);
-      const dataString = await response.json();
-
-      const scoreDataTemp = dataString.games.map((game, index) => {
+      const scoreDataTemp = data.games.map((game, index) => {
         const timestamp = new Date(game.startTimeUTC);
-        const options = { timeZone: 'America/New_York', hour12: false };
-        const formattedTime = timestamp.toLocaleString('en-US', options);
+        const formattedTime = timestamp.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: false });
+        const [, hourStr, minute] = formattedTime.match(/(\d+):(\d+)/);
+        const hour = parseInt(hourStr, 10);
 
-        const [_, hour, minute] = formattedTime.match(/(\d+):(\d+)/);
-        let time;
-        if (hour > 12) {
-          time = `${hour - 12}:${minute} pm`;
-        } else if (hour == 12) {
-          time = `${hour}:${minute} pm`;
-        } else {
-          time = `${hour}:${minute} am`;
-        }
+        let time = `${hour % 12 || 12}:${minute} ${hour >= 12 ? 'pm' : 'am'}`;
 
-        return {
+        const baseGameData = {
           id: index + 1,
           date: game.gameDate.substring(5),
           time,
@@ -42,14 +46,27 @@ const ScoreList = ({ year, month, day }) => {
           awayTeamScore: game.awayTeam.score,
           homeTeamIcon: game.homeTeam.logo,
           awayTeamIcon: game.awayTeam.logo,
+          status: game.gameState,
         };
+
+        const activeStates = new Set(['LIVE', 'CRIT', 'OFF']);
+        if (activeStates.has(game.gameState)) {
+          return {
+            ...baseGameData,
+            timeRemaining: game.clock?.timeRemaining,
+            period: game.period,
+            goals: game.goals || [],
+          };
+        }
+
+        return baseGameData;
       });
 
-      setScoreData(scoreDataTemp); // Update state directly
+      setScoreData(scoreDataTemp);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  }
+  }, [year, month, day]);
 
   const fetchData = () => {
     setRefreshing(true);
@@ -57,49 +74,100 @@ const ScoreList = ({ year, month, day }) => {
   };
 
   useEffect(() => {
-    fetchMyAPI(); // Fetch data when year, month, or day changes
-  }, [year, month, day]);
+    fetchMyAPI();
+  }, [fetchMyAPI]);
 
+
+  
   const renderItem = ({ item }) => (
     <View style={styles.bufferContainer}>
       <View style={styles.scoreContainer}>
         <View style={styles.teamScoreContainer}>
-          <View style={styles.homeScore}>
-            <SvgUri width="50" height="50" uri={item.homeTeamIcon} />
-            <View style={{ width: 8 }} />
-            <Text>{item.homeTeam}</Text>
-          </View>
-          <Text style={styles.scoreText}>{item.homeTeamScore}</Text>
+          <TeamInfo
+            icon={item.homeTeamIcon}
+            abbrev={item.homeTeam}
+            score={item.homeTeamScore}
+            isHome={true}
+          />
         </View>
         <View style={styles.timeDate}>
-          <Text>{item.date}</Text>
-          <Text>{item.time}</Text>
+          <Text style={{fontSize: 24}}>{item.date}</Text>
+          {(item.status === 'LIVE' || item.status === 'CRIT') && (
+            <View style={{ flexDirection: 'column', alignItems: 'center' }}>
+              {item.period > 3 ? (
+                <Text style={{fontSize: 18}}>OT {item.period - 3}</Text>
+              ) : (
+                <Text style={{fontSize: 18}}>Period: {item.period}</Text>
+              )}
+              <Text style={{fontSize: 18}}>{item.timeRemaining}</Text>
+            </View>
+          )}
+          {item.status === 'FUT' && <Text style={{fontSize: 18}}>{item.time}</Text>}
+          {item.status === 'OFF' && <Text style={{fontSize: 18}}>FINAL</Text>}
         </View>
         <View style={styles.teamScoreContainer}>
-          <View style={styles.awayScore}>
-            <Text>{item.awayTeam}</Text>
-            <View style={{ width: 8 }} />
-            <SvgUri width="50" height="50" uri={item.awayTeamIcon} />
-          </View>
-          <Text style={styles.scoreText}>{item.awayTeamScore}</Text>
+          <TeamInfo
+            icon={item.awayTeamIcon}
+            abbrev={item.awayTeam}
+            score={item.awayTeamScore}
+          />
         </View>
       </View>
+  
+      {(item.status === 'LIVE' || item.status === 'CRIT' || item.status === 'OFF') && (
+        <View style={styles.gameStatusContainer}>
+          <View style={{ height: 5 }} />
+          <ScrollView
+            style={{ width: '100%' }}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          >
+            {item.goals.map((goal, index) => (
+              <View
+                key={index}
+                style={{
+                  flexDirection: 'column',
+                  justifyContent: 'flex-start',
+                  alignItems: 'center',
+                  marginHorizontal: 10,
+                  borderColor: nhlTeamColors[goal.teamAbbrev] || 'black',
+                  borderWidth: 2,
+                  padding: 5,
+                  backgroundColor: '#b6b6b6',
+                }}
+                onTouchEnd={() => openLink(goal.highlightClipSharingUrl)}
+              >
+                <Text style={{ fontSize: 18, marginBottom: 5 }}>
+                  -- {goal.teamAbbrev} --
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text>Per: {goal.period}  -  </Text>
+                  <Text>{goal.timeInPeriod}</Text>
+                </View>
+                <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
+                  {goal.name.default} ({goal.goalsToDate})
+                </Text>
+                {goal.assists.map((assist, idx) => (
+                  <Text key={idx} style={{ fontSize: 14 }}>
+                    {assist.name.default}
+                  </Text>
+                ))}
+              </View>
+            ))}
+          </ScrollView>
+          <View style={{ height: 5 }} />
+        </View>
+      )}
     </View>
   );
 
   return (
     <FlatList
-      data={scoreData} // Use state for FlatList data
+      data={scoreData}
       renderItem={renderItem}
       keyExtractor={(item) => item.id.toString()}
       style={styles.scoreListContainer}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={fetchData}
-          colors={['#1e90ff']} // Set the color of the loading indicator
-        />
-      }
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchData} colors={['#1e90ff']} />}
     />
   );
 };
@@ -109,18 +177,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'grey',
     justifyContent: 'center',
     alignItems: 'center',
-    color: 'white',
     borderWidth: 2,
     width: '100%',
     flexDirection: 'row',
+  },
+  gameStatusContainer: {
+    backgroundColor: 'grey',
+    alignItems: 'center',
+    borderWidth: 2,
+    width: '100%',
   },
   bufferContainer: {
     width: '100%',
     marginTop: 5,
     padding: 10,
-    justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'column',
   },
   scoreListContainer: {
     flex: 1,
@@ -128,25 +199,15 @@ const styles = StyleSheet.create({
   },
   timeDate: {
     flex: 0.6,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  homeScore: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
+  teamInfo: {
     alignItems: 'center',
-  },
-  awayScore: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    justifyContent: 'center',
   },
   teamScoreContainer: {
-    flexDirection: 'column',
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   scoreText: {
