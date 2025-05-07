@@ -139,8 +139,8 @@ const ScoreList = ({ year, month, day }) => {
               <Text style={{fontSize: 18}}>{item.timeRemaining}</Text>
             </View>
           )}
-          {item.status === 'FUT' && <Text style={{fontSize: 18}}>{item.time}</Text>}
-          {(item.status === 'OFF' || item.status === 'PRE') && (
+          {(item.status === 'FUT' || item.status === 'PRE') && <Text style={{fontSize: 18}}>{item.time}</Text>}
+          {(item.status === 'OFF') && (
             item.fullGameData.gameOutcome.lastPeriodType === 'OT' ? (
                 <Text style={{ fontSize: 16 }}>FINAL/OT</Text>
               ) : (
