@@ -11,7 +11,9 @@ const ScoresScreen = () => {
   futureDate.setDate(currentDate.getDate() + date);
   const year = futureDate.getFullYear();
   const month = String(futureDate.getMonth() + 1).padStart(2, '0');
+  const strMonth = String(futureDate.getMonth() + 1);
   const day = String(futureDate.getDate()).padStart(2, '0');
+  const strDay = String(futureDate.getDate());
 
   return (
     <View style={ScoreScreenStyle.screenContainer}>
@@ -27,7 +29,7 @@ const ScoresScreen = () => {
       >
         <Button title="<-" onPress={() => setDate(date - 1)} color={'black'}/>
         <Text style={{ marginHorizontal: 70, fontSize: 20, color: 'black' }}>
-          {month}/{day}/{year}
+          {`${futureDate.toLocaleDateString('en-US', { weekday: 'short' })} - ${strMonth}/${strDay}`}
         </Text>
         <Button title="->" onPress={() => setDate(date + 1)} color={'black'}/>
       </View>

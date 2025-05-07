@@ -14,10 +14,37 @@ const baseURL = 'https://api-web.nhle.com/v1/score/';
 
 const TeamInfo = ({ icon, abbrev, score }) => (
   <View style={styles.teamInfo}>
-    <SvgUri width="90" height="90" uri={icon} />
+    <SvgUri width="70" height="70" uri={icon} />
     <Text style={styles.scoreText}>{score}</Text>
   </View>
 );
+
+
+const PlayoffSeriesStatus = ({ seriesStatus }) => {
+  if (!seriesStatus) return null;
+
+  if (seriesStatus.topSeedWins > seriesStatus.bottomSeedWins) {
+    return(
+      <Text style={{ fontSize: 14 }}>
+        {seriesStatus.topSeedWins} - {seriesStatus.bottomSeedWins} {seriesStatus.topSeedTeamAbbrev} Leads
+      </Text>
+    )}
+    else if (seriesStatus.topSeedWins < seriesStatus.bottomSeedWins) {
+      return(
+        <Text style={{ fontSize: 14 }}>
+          {seriesStatus.bottomSeedWins} - {seriesStatus.topSeedWins} {seriesStatus.bottomSeedTeamAbbrev} Leads
+        </Text>
+      )
+    }else {
+      return(
+        <Text style={{ fontSize: 14 }}>
+          {seriesStatus.topSeedWins} - {seriesStatus.bottomSeedWins}
+        </Text>
+      )
+    }
+}
+
+
 const ScoreList = ({ year, month, day }) => {
   const [scoreData, setScoreData] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -47,6 +74,7 @@ const ScoreList = ({ year, month, day }) => {
           homeTeamIcon: game.homeTeam.logo,
           awayTeamIcon: game.awayTeam.logo,
           status: game.gameState,
+          fullGameData: game
         };
 
         const activeStates = new Set(['LIVE', 'CRIT', 'OFF']);
@@ -91,7 +119,16 @@ const ScoreList = ({ year, month, day }) => {
           />
         </View>
         <View style={styles.timeDate}>
-          <Text style={{fontSize: 24}}>{item.date}</Text>
+          {item.fullGameData.seriesStatus ? (
+              <Text style={{fontSize: 16}}>{item.fullGameData.seriesStatus.seriesAbbrev}: Gm {item.fullGameData.seriesStatus.gameNumberOfSeries}</Text>
+            ) : null}
+          {item.fullGameData.seriesStatus ? (
+            <PlayoffSeriesStatus seriesStatus={item.fullGameData.seriesStatus}/>
+          ) : null}
+
+
+
+
           {(item.status === 'LIVE' || item.status === 'CRIT') && (
             <View style={{ flexDirection: 'column', alignItems: 'center' }}>
               {item.period > 3 ? (
@@ -103,7 +140,13 @@ const ScoreList = ({ year, month, day }) => {
             </View>
           )}
           {item.status === 'FUT' && <Text style={{fontSize: 18}}>{item.time}</Text>}
-          {item.status === 'OFF' && <Text style={{fontSize: 18}}>FINAL</Text>}
+          {(item.status === 'OFF' || item.status === 'PRE') && (
+            item.fullGameData.gameOutcome.lastPeriodType === 'OT' ? (
+                <Text style={{ fontSize: 16 }}>FINAL/OT</Text>
+              ) : (
+                <Text style={{ fontSize: 16 }}>FINAL</Text>
+              )
+            )}        
         </View>
         <View style={styles.teamScoreContainer}>
           <TeamInfo
@@ -198,9 +241,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   timeDate: {
-    flex: 0.6,
+    flex: 1.4,
     alignItems: 'center',
     justifyContent: 'center',
+    alignContent: 'center',
   },
   teamInfo: {
     alignItems: 'center',
