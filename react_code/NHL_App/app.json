@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "NHL_APP_V2",
-    "slug": "NHL_APP_V2",
+    "name": "NHL_App",
+    "slug": "NHL_App",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,17 +17,17 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.rudydeespersonal.NHL_APP_V2"
+      "package": "com.rudydeespersonal.NHL_APP"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "6a51a45a-0d3a-4cc3-9cf2-ecd1ccac0614"
+        "projectId": "56638969-3ec7-4e4b-ada4-067a829cb801"
       }
     }
   }

@@ -1,5 +1,5 @@
 {
-  "name": "nhl_app_v2",
+  "name": "nhl_app",
   "license": "0BSD",
   "version": "1.0.0",
   "main": "index.js",
@@ -17,6 +17,7 @@
     "fetch": "^1.1.0",
     "react": "19.0.0",
     "react-native": "0.79.2",
+    "react-native-gesture-handler": "^2.25.0",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.10.0",
     "react-native-svg": "15.11.2",
