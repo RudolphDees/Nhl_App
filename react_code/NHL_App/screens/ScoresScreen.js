@@ -1,9 +1,25 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import ScoreList from '../content/ScoreList';
 
 const ScoresScreen = () => {
   const [date, setDate] = useState(0);
+  const [gestureEnabled, setGestureEnabled] = useState(true); // State to control gesture
+
+
+  // Define the swipe gesture
+  const swipeGesture = Gesture.Pan()
+  .enabled(gestureEnabled) // Enable or disable the gesture
+  .onEnd((event) => {
+    if (event.translationX > 50) {
+      // Swipe right: Go to the previous day
+      setDate(date - 1);
+    } else if (event.translationX < -50) {
+      // Swipe left: Go to the next day
+      setDate(date + 1);
+    }
+  });
 
   // Move the date calculations inside the render logic
   const currentDate = new Date();
@@ -27,13 +43,22 @@ const ScoresScreen = () => {
           flexDirection: 'row',
         }}
       >
-        <Button title="<-" onPress={() => setDate(date - 1)} color={'black'}/>
-        <Text style={{ marginHorizontal: 70, fontSize: 20, color: 'black' }}>
-          {`${futureDate.toLocaleDateString('en-US', { weekday: 'short' })} - ${strMonth}/${strDay}`}
-        </Text>
-        <Button title="->" onPress={() => setDate(date + 1)} color={'black'}/>
+        <View style={{ width: 50 }}>
+          <Button title="<-" onPress={() => setDate(date - 1)} color={'black'}/>
+        </View>
+        <View style={{ width: 240, alignItems: 'center' }}>
+          <Text style={{ marginHorizontal: 70, fontSize: 20, color: 'black' }}>
+            {`${futureDate.toLocaleDateString('en-US', { weekday: 'short' })} - ${strMonth}/${strDay}`}
+          </Text>
+        </View>
+        <View style={{ width: 50 }}>
+          <Button title="->" onPress={() => setDate(date + 1)} color={'black'}/>
+        </View>
       </View>
-      <ScoreList year={year} month={month} day={day} />
+      <ScoreList year={year} month={month} day={day} 
+          onScrollStart={() => setGestureEnabled(false)} // Disable gesture on scroll start
+          onScrollEnd={() => setGestureEnabled(true)} // Enable gesture on scroll end
+      />
     </View>
   );
 };

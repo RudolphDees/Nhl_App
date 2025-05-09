@@ -157,7 +157,7 @@ const ScoreList = ({ year, month, day }) => {
         </View>
       </View>
   
-      {(item.status === 'LIVE' || item.status === 'CRIT' || item.status === 'OFF') && (
+      {((item.status === 'LIVE' || item.status === 'CRIT' || item.status === 'OFF') && item.goals.length > 0) && (
         <View style={styles.gameStatusContainer}>
           <View style={{ height: 5 }} />
           <ScrollView

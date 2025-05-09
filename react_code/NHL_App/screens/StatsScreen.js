@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Button } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Button, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import query_athena from '../aws/athena_query';
 import nhlTeamColors from '../content/TeamColors';
@@ -84,18 +84,22 @@ const StatsScreen = () => {
   const renderTableHeader = () => (
     <View style={styles.tableHeader}>
       <Text style={styles.headerCell}>Name</Text>
+      <Text style={styles.headerCell}>Points</Text>
       <Text style={styles.headerCell}>Goals</Text>
       <Text style={styles.headerCell}>Assists</Text>
       <Text style={styles.headerCell}>Shots</Text>
+      <Text style={styles.headerCell}>Games Played</Text>
     </View>
   );
 
   const renderTableRow = ({ item }) => (
     <View style={styles.tableRow}>
-      <Text style={styles.cell}>{item.first_name + " " + item.last_name}</Text>
+      <Text style={styles.cell} numberOfLines={2}>{item.first_name + " " + item.last_name}</Text>
+      <Text style={styles.cell}>{parseInt(item.goals) + parseInt(item.assists)}</Text>
       <Text style={styles.cell}>{item.goals}</Text>
       <Text style={styles.cell}>{item.assists}</Text>
       <Text style={styles.cell}>{item.shots}</Text>
+      <Text style={styles.cell}>{item.gp}</Text>
     </View>
   );
 
@@ -174,6 +178,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     color: 'white',
+    flexWrap: 'nowrap',
   },
 });
 
