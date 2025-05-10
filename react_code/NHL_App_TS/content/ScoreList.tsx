@@ -46,6 +46,35 @@ const PlayoffSeriesStatus = ({ seriesStatus }: { seriesStatus: SeriesStatus}) =>
     }
 }
 
+const RenderPowerplayInfo = ({ powerplayInfo }: { powerplayInfo: any }) => {
+  if (!powerplayInfo || !powerplayInfo.homeTeam || !powerplayInfo.awayTeam) return null;
+
+  const homeTeamStr: string = powerplayInfo.homeTeam.strength;
+  const awayTeamStr: string = powerplayInfo.awayTeam.strength;
+  const homeTeamAbr: string = powerplayInfo.homeTeam.abbrev;
+  const awayTeamAbr: string = powerplayInfo.awayTeam.abbrev;
+
+  if (homeTeamStr > awayTeamStr) {
+    return (
+      <Text style={{ fontSize: 14, color: 'red' }}>
+        {homeTeamAbr}: {homeTeamStr} - {awayTeamStr}: {powerplayInfo.timeRemaining}
+      </Text>
+    );
+  } else if (homeTeamStr < awayTeamStr) {
+    return (
+      <Text style={{ fontSize: 14, color: 'red' }}>
+        {awayTeamAbr}: {awayTeamStr} - {homeTeamStr}: {powerplayInfo.timeRemaining}
+        </Text>
+    );
+  } else {
+    return (
+      <Text style={{ fontSize: 14, color: 'red' }}>
+        {awayTeamStr} - {homeTeamStr}: {powerplayInfo.timeRemaining}
+      </Text>
+    );
+  }
+};
+
 
 const ScoreList = ({ year, month, day }: { year: string, month: string, day: string }) => {
   const [scoreData, setScoreData] = useState([]);
@@ -116,10 +145,11 @@ const ScoreList = ({ year, month, day }: { year: string, month: string, day: str
 
           {(item.gameState === 'LIVE' || item.gameState === 'CRIT') && (
             <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-              {item.period > 3 ? (
-                <Text style={{fontSize: 18}}>OT {item.period - 3}</Text>
+              {
+              item.period > 3 ? (
+                <Text style={{fontSize: 18}}>OT {item.period - 3}{item.clock.inIntermission ? ' : Int' : ''}</Text>
               ) : (
-                <Text style={{fontSize: 18}}>Period: {item.period}</Text>
+                <Text style={{fontSize: 18}}>Period {item.period}{item.clock.inIntermission ? ' : Int' : ''}</Text>
               )}
               <Text style={{fontSize: 18}}>{item.clock.timeRemaining}</Text>
             </View>
@@ -131,7 +161,8 @@ const ScoreList = ({ year, month, day }: { year: string, month: string, day: str
               ) : (
                 <Text style={{ fontSize: 16 }}>FINAL</Text>
               )
-            )}        
+            )} 
+        <RenderPowerplayInfo powerplayInfo={item.situation}/>
         </View>
         <View style={styles.teamScoreContainer}>
           <TeamInfo
