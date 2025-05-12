@@ -109,7 +109,7 @@ const StatsScreen = () => {
 
   return (
     <View style={[styles.container,      
-     { backgroundColor: selectedTeam === 'All' ? 'white' : nhlTeamColors[selectedTeam.default] || 'white' },
+     { backgroundColor: selectedTeam === 'All' ? 'black' : nhlTeamColors[selectedTeam.default] || 'black' },
   ]}>
       <Picker
         selectedValue={selectedTeam}
@@ -141,14 +141,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: 'white' // Use the selected team's color as background
+    backgroundColor: 'white', // Use the selected team's color as background
   },
   picker: {
     height: 50,
     width: '100%',
-    borderWidth: 1,
+    borderWidth: 3,
     borderColor: 'white',
-    backgroundColor: 'black',
+    backgroundColor: 'grey',
     color: 'white',
     marginBottom: 10,
   },
@@ -160,6 +160,8 @@ const styles = StyleSheet.create({
   table: {
     marginTop: 20,
     backgroundColor: 'black',
+    borderColor: 'white',
+    borderWidth: 1,
   },
   tableHeader: {
     flexDirection: 'row',
