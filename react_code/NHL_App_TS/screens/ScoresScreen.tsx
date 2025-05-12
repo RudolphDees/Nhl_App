@@ -1,27 +1,38 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
-import { Gesture } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import ScoreList from '../content/ScoreList';
 
 const ScoresScreen = () => {
   const [date, setDate] = useState(0);
-  const [gestureEnabled, setGestureEnabled] = useState(true); // State to control gesture
-
+  const [canSwipe, setCanSwipe] = useState(true);
 
   // Define the swipe gesture
   const swipeGesture = Gesture.Pan()
-  .enabled(gestureEnabled) // Enable or disable the gesture
-  .onEnd((event) => {
-    if (event.translationX > 50) {
-      // Swipe right: Go to the previous day
-      setDate(date - 1);
-    } else if (event.translationX < -50) {
-      // Swipe left: Go to the next day
-      setDate(date + 1);
-    }
-  });
+    .enabled(canSwipe) // Enable or disable the gesture based on `canSwipe`
+    .onFinalize((event) => {
+      if (event.translationX > 50) {
+        // Swipe right: Go to the previous day
+        handleSwipeLeft()
+      } else if (event.translationX < -50) {
+        // Swipe left: Go to the next day
+        handleSwipeRight()
+      }
+    });
 
-  // Move the date calculations inside the render logic
+    const handleSwipeLeft = () => {
+      setDate((prevDate) => prevDate - 1);
+    };
+  
+    const handleSwipeRight = () => {
+      setDate((prevDate) => prevDate + 1);
+    };
+
+  const setCanSwipe_Callback = (value: bool) => {
+    setCanSwipe(value); 
+  }
+
+  // Calculate the current date based on the offset
   const currentDate = new Date();
   const futureDate = new Date(currentDate);
   futureDate.setDate(currentDate.getDate() + date);
@@ -31,46 +42,61 @@ const ScoresScreen = () => {
   const day = String(futureDate.getDate()).padStart(2, '0');
   const strDay = String(futureDate.getDate());
 
+  const formattedDate = `${futureDate.toLocaleDateString('en-US', { weekday: 'short' })} - ${strMonth}/${strDay}`;
+
   return (
-    <View style={ScoreScreenStyle.screenContainer}>
-      <View
-        style={{
-          backgroundColor: 'grey',
-          width: '100%',
-          height: 50,
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexDirection: 'row',
-        }}
-      >
-        <View style={{ width: 50 }}>
-          <Button title="<-" onPress={() => setDate(date - 1)} color={'black'}/>
+    <GestureHandlerRootView style={styles.container}>
+    <GestureDetector gesture={swipeGesture}>
+      <View style={styles.screenContainer}>
+        {/* Header with Navigation Buttons */}
+        <View style={styles.header}>
+          <View style={styles.navButton}>
+            <Button title="<-" onPress={() => setDate((prevDate) => prevDate - 1)} color="black" />
+          </View>
+          <View style={styles.dateContainer}>
+            <Text style={styles.dateText}>{formattedDate}</Text>
+          </View>
+          <View style={styles.navButton}>
+            <Button title="->" onPress={() => setDate((prevDate) => prevDate + 1)} color="black" />
+          </View>
         </View>
-        <View style={{ width: 240, alignItems: 'center' }}>
-          <Text style={{ marginHorizontal: 70, fontSize: 20, color: 'black' }}>
-            {`${futureDate.toLocaleDateString('en-US', { weekday: 'short' })} - ${strMonth}/${strDay}`}
-          </Text>
-        </View>
-        <View style={{ width: 50 }}>
-          <Button title="->" onPress={() => setDate(date + 1)} color={'black'}/>
-        </View>
+
+        {/* Score List */}
+        <ScoreList year={year} month={month} day={day} setCanSwipe={setCanSwipe_Callback}/>
       </View>
-      <ScoreList year={year} month={month} day={day} 
-      />
-    </View>
+    </GestureDetector>
+    </GestureHandlerRootView>
   );
 };
 
 export default ScoresScreen;
 
-const ScoreScreenStyle = StyleSheet.create({
+const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
     width: '100%',
     backgroundColor: 'black',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 4,
+  },
+  header: {
+    backgroundColor: 'grey',
+    width: '100%',
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  navButton: {
+    width: 50,
+  },
+  dateContainer: {
+    width: 240,
+    alignItems: 'center',
+  },
+  dateText: {
+    marginHorizontal: 70,
+    fontSize: 18,
+    color: 'black',
   },
 });
-

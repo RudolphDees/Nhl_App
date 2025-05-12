@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import ScoresScreen from './screens/ScoresScreen';
-import StandingsScreen from './screens/StandingsScreen';
-import StatsScreen from './screens/StatsScreen';
+import ScoresScreen from '../screens/ScoresScreen';
+import StandingsScreen from '../screens/StandingsScreen';
+import StatsScreen from '../screens/StatsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -14,6 +14,7 @@ const screenOptions: object = {
     height: 60, // Ensure the tab bar has enough height
     borderTopWidth: 2,
     borderTopColor: 'grey',
+    marginBottom: Platform.OS === 'android' ? 25 : 0, // Add margin only on Android
   },
 };
 

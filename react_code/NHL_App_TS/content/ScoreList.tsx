@@ -4,6 +4,7 @@ import { SvgUri } from 'react-native-svg';
 import nhlTeamColors from './TeamColors';
 import Game, { Goal } from '../types/Game';
 import SeriesStatus from '../types/SeriesStatus';
+import GameData from './GameData';
 
 // Function to open external links safely
 const openLink = (url: string) => {
@@ -76,11 +77,11 @@ const RenderPowerplayInfo = ({ powerplayInfo }: { powerplayInfo: any }) => {
 };
 
 
-const ScoreList = ({ year, month, day }: { year: string, month: string, day: string }) => {
+const ScoreList = ({ year, month, day, setCanSwipe }: { year: string, month: string, day: string, setCanSwipe: (value: bool) => void }) => {
   const [scoreData, setScoreData] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const [showGameData, setShowGameData] = useState([]);
 
   const fetchMyAPI = useCallback(async () => {
     setLoading(true);
@@ -96,7 +97,7 @@ const ScoreList = ({ year, month, day }: { year: string, month: string, day: str
         const hour = parseInt(hourStr, 10);
   
         let time = `${hour % 12 || 12}:${minute} ${hour >= 12 ? 'pm' : 'am'}`;
-        return { ...game, time, id: index + 1};
+        return { ...game, time, id: index + 1, gameID: game.id };
       });
       setScoreData(scoreDataTemp);
     } catch (error) {
@@ -118,7 +119,6 @@ const ScoreList = ({ year, month, day }: { year: string, month: string, day: str
 
   
   const renderItem = ({ item }: { item: Game }) => {
-    console.log(JSON.stringify(item)); // Debugging to verify the structure of the item
     if (!item || !item.homeTeam || !item.awayTeam) {
       return null;
     }
@@ -155,7 +155,7 @@ const ScoreList = ({ year, month, day }: { year: string, month: string, day: str
             </View>
           )}
           {(item.gameState === 'FUT' || item.gameState === 'PRE') && <Text style={{fontSize: 18}}>{item.time}</Text>}
-          {(item.gameState === 'OFF') && (
+          {(item.gameState === 'OFF' || item.gameState === 'FINAL') && (
             item.gameOutcome.lastPeriodType === 'OT' ? (
                 <Text style={{ fontSize: 16 }}>FINAL/OT</Text>
               ) : (
@@ -172,13 +172,14 @@ const ScoreList = ({ year, month, day }: { year: string, month: string, day: str
         </View>
       </View>
   
-      {((item.gameState === 'LIVE' || item.gameState === 'CRIT' || item.gameState === 'OFF') && item.goals.length > 0) && (
+      {((item.gameState === 'LIVE' || item.gameState === 'CRIT' || item.gameState === 'OFF' || item.gameState === 'FINAL' ) && item.goals.length > 0) && (
         <View style={styles.gameStatusContainer}>
           <View style={{ height: 5 }} />
           <ScrollView
             style={{ width: '100%' }}
             horizontal
             showsHorizontalScrollIndicator={false}
+            onTouchStart={() => setCanSwipe(false)}
           >
             {item.goals.map((goal, index) => (
               <View
@@ -214,6 +215,18 @@ const ScoreList = ({ year, month, day }: { year: string, month: string, day: str
             ))}
           </ScrollView>
           <View style={{ height: 5 }} />
+          <View onTouchEnd={() => {
+            if (showGameData.includes(item.gameID)) {
+              setShowGameData(showGameData.filter((gameID) => gameID !== item.gameID));
+            } else {
+              setShowGameData([...showGameData, item.gameID]);
+            }
+          }} style={{ width: '100%', alignItems: 'center', padding: 10 }}>
+            <Text>
+              {showGameData.includes(item.gameID) ? 'Hide Game Data' : 'Show Game Data'}
+            </Text>
+          </View>
+          {showGameData.includes(item.gameID) && <GameData GameID={item.gameID} />}
         </View>
       )}
     </View>
@@ -232,7 +245,9 @@ const ScoreList = ({ year, month, day }: { year: string, month: string, day: str
           renderItem={renderItem}
           keyExtractor={(item: Game) => item.id?.toString() || ''}
           style={styles.scoreListContainer}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchData} colors={['#1e90ff']} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchData} colors={['#1e90ff']}
+          onTouchEnd={() => setCanSwipe(true)}
+           />}
         />
       )}
     </View>
@@ -256,8 +271,8 @@ const styles = StyleSheet.create({
   },
   bufferContainer: {
     width: '100%',
-    marginTop: 5,
-    padding: 10,
+    marginTop: 3,
+    padding: 6,
     alignItems: 'center',
   },
   scoreListContainer: {
