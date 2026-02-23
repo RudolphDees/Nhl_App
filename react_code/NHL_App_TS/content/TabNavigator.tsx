@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ScoresScreen from '../screens/ScoresScreen';
 import StandingsScreen from '../screens/StandingsScreen';
 import StatsScreen from '../screens/StatsScreen';
+import StatsScreenV2 from '../screens/StatsScreenV2';
 
 const Tab = createBottomTabNavigator();
 
@@ -79,7 +80,7 @@ const TabNavigator = () => (
     />
     <Tab.Screen
       name="Stats"
-      component={StatsScreen}
+      component={StatsScreenV2}
       options={createTabOptions('Stats')}
     />
   </Tab.Navigator>

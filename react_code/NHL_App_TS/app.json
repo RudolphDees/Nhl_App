@@ -21,7 +21,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.rudydeespersonal.NHL_App_TS"
+      "package": "com.rudydeespersonal.NHL_App_TS",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "favicon": "./assets/icon.png"
